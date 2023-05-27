@@ -27,11 +27,11 @@ public class Agent {
     private String city;
     private String pincode;
 
-    @OneToMany(mappedBy = "agent")
-    private List<TourPackage> tourPackages;
+    // @OneToMany(mappedBy = "agent")
+    // private List<TourPackage> tourPackages;
   
-    @OneToMany(mappedBy = "agent")
-    private List<UserReview> reviews;
+    // @OneToMany(mappedBy = "agent")
+    // private List<UserReview> reviews;
 
     public Agent(Long agentId, String name, String emailId,String password ,String socialMediaLinks, String contactNumber,
         String country, String city, String pincode) {
@@ -122,12 +122,12 @@ public class Agent {
     public Agent() {
     }
 
-    public List<TourPackage> getTourPackages() {
-    return tourPackages;
-  }
+  //   public List<TourPackage> getTourPackages() {
+  //   return tourPackages;
+  // }
 
-  public void setTourPackages(List<TourPackage> tourPackages) {
-    this.tourPackages = tourPackages;
-  }
+  // public void setTourPackages(List<TourPackage> tourPackages) {
+  //   this.tourPackages = tourPackages;
+  // }
     
 }

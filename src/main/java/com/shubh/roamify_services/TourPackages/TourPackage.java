@@ -1,12 +1,16 @@
 package com.shubh.roamify_services.TourPackages;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.shubh.roamify_services.AgentFiles.Agent;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.shubh.roamify_services.UserFiles.User;
 
 import jakarta.persistence.CascadeType;
@@ -19,17 +23,24 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 @Entity
+@NoArgsConstructor
+@JsonIgnoreProperties("cities")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "tId")
 public class TourPackage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long tId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+   
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JsonIgnore
-    @JoinColumn(name = "a_id")
-    private Agent agent;
+    @JsonBackReference
+    @JoinColumn(name = "agent_id")
+    private User agent;
 
     private String tourName;
     private String location;
@@ -39,30 +50,61 @@ public class TourPackage {
     private int maxPerson;
     private boolean approved;
     private int minPerson;
+    private LocalDateTime createdDateTime;
+
 
  
-    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JsonIgnore
-    @JoinTable(
-            name = "tour_cities",
-            joinColumns = @JoinColumn(name = "t_id"),
-            inverseJoinColumns = @JoinColumn(name = "city_id")
-    )
-    private Set<City> cities = new HashSet<>();
-
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
 
 
-    public TourPackage() {
+    public TourPackage(User agent, String tourName, String location, String description, int days,
+            double chargePerPerson, int maxPerson, boolean approved, int minPerson, LocalDateTime createdDateTime,
+            Set<City> cities) {
+        this.agent = agent;
+        this.tourName = tourName;
+        this.location = location;
+        this.description = description;
+        this.days = days;
+        this.chargePerPerson = chargePerPerson;
+        this.maxPerson = maxPerson;
+        this.approved = approved;
+        this.minPerson = minPerson;
+        this.createdDateTime = LocalDateTime.now();
+        this.cities = cities;
+
     }
 
+
+
+
+
+
+
+
+
+
+
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JoinTable(name = "tourpackage_city",
+            joinColumns = @JoinColumn(name = "tourpackage_id"),
+            inverseJoinColumns = @JoinColumn(name = "city_id"))
+    private Set<City> cities = new HashSet<>();
+    
+
+   
+    @ManyToMany(mappedBy = "mytourlist",fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<User> userlist = new ArrayList<>();
+
+
+
+
+
+
+  
     
     
 
 
-    public TourPackage( Agent agent, String tourName, String location, String description, int days,
+    public TourPackage( User agent, String tourName, String location, String description, int days,
             double chargePerPerson, int maxPerson, boolean approved, int minPerson) {
     
         this.agent = agent;
@@ -80,21 +122,8 @@ public class TourPackage {
 
 
 
-    public TourPackage(Long tId, Agent agent, String tourName, String location, String description, int days,
-            double chargePerPerson, int maxPerson, boolean approved, int minPerson, Set<City> cities, User user) {
-        this.tId = tId;
-        this.agent = agent;
-        this.tourName = tourName;
-        this.location = location;
-        this.description = description;
-        this.days = days;
-        this.chargePerPerson = chargePerPerson;
-        this.maxPerson = maxPerson;
-        this.approved = approved;
-        this.minPerson = minPerson;
-        this.cities = cities;
-        this.user = user;
-    }
+
+
 
 
 
@@ -104,19 +133,55 @@ public class TourPackage {
     }
 
 
+
+
+
+
+
+
+
+
+
     public void settId(Long tId) {
         this.tId = tId;
     }
 
 
-    public Agent getAgent() {
+
+
+
+
+
+
+
+
+
+    public User getAgent() {
         return agent;
     }
 
 
-    public void setAgent(Agent agent) {
+
+
+
+
+
+
+
+
+
+    public void setAgent(User agent) {
         this.agent = agent;
     }
+
+
+
+
+
+
+
+
+
 
 
     public String getTourName() {
@@ -124,9 +189,27 @@ public class TourPackage {
     }
 
 
+
+
+
+
+
+
+
+
+
     public void setTourName(String tourName) {
         this.tourName = tourName;
     }
+
+
+
+
+
+
+
+
+
 
 
     public String getLocation() {
@@ -134,9 +217,27 @@ public class TourPackage {
     }
 
 
+
+
+
+
+
+
+
+
+
     public void setLocation(String location) {
         this.location = location;
     }
+
+
+
+
+
+
+
+
+
 
 
     public String getDescription() {
@@ -144,9 +245,27 @@ public class TourPackage {
     }
 
 
+
+
+
+
+
+
+
+
+
     public void setDescription(String description) {
         this.description = description;
     }
+
+
+
+
+
+
+
+
+
 
 
     public int getDays() {
@@ -154,9 +273,27 @@ public class TourPackage {
     }
 
 
+
+
+
+
+
+
+
+
+
     public void setDays(int days) {
         this.days = days;
     }
+
+
+
+
+
+
+
+
+
 
 
     public double getChargePerPerson() {
@@ -164,9 +301,27 @@ public class TourPackage {
     }
 
 
+
+
+
+
+
+
+
+
+
     public void setChargePerPerson(double chargePerPerson) {
         this.chargePerPerson = chargePerPerson;
     }
+
+
+
+
+
+
+
+
+
 
 
     public int getMaxPerson() {
@@ -174,9 +329,27 @@ public class TourPackage {
     }
 
 
+
+
+
+
+
+
+
+
+
     public void setMaxPerson(int maxPerson) {
         this.maxPerson = maxPerson;
     }
+
+
+
+
+
+
+
+
+
 
 
     public boolean isApproved() {
@@ -184,9 +357,27 @@ public class TourPackage {
     }
 
 
+
+
+
+
+
+
+
+
+
     public void setApproved(boolean approved) {
         this.approved = approved;
     }
+
+
+
+
+
+
+
+
+
 
 
     public int getMinPerson() {
@@ -194,9 +385,55 @@ public class TourPackage {
     }
 
 
+
+
+
+
+
+
+
+
+
     public void setMinPerson(int minPerson) {
         this.minPerson = minPerson;
     }
+
+
+
+
+
+
+
+
+
+
+
+    public LocalDateTime getCreatedDateTime() {
+        return createdDateTime;
+    }
+
+
+
+
+
+
+
+
+
+
+
+    public void setCreatedDateTime(LocalDateTime createdDateTime) {
+        this.createdDateTime = createdDateTime;
+    }
+
+
+
+
+
+
+
+
+
 
 
     public Set<City> getCities() {
@@ -204,20 +441,58 @@ public class TourPackage {
     }
 
 
+
+
+
+
+
+
+
+
+
     public void setCities(Set<City> cities) {
         this.cities = cities;
     }
 
 
-    public User getUser() {
-        return user;
+
+
+
+
+
+
+
+
+
+    public List<User> getUserlist() {
+        return userlist;
     }
 
 
-    public void setUser(User user) {
-        this.user = user;
+
+
+
+
+
+
+
+
+
+    public void setUserlist(List<User> userlist) {
+        this.userlist = userlist;
     }
-    
+
+
+
+
+
+
+
+
+
+
+  
+
 
 
 }
