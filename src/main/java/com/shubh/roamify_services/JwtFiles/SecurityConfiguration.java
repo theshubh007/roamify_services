@@ -28,8 +28,8 @@ public class SecurityConfiguration {
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
      
                       
-        http
-           .csrf(csrf -> csrf.disable())
+   http
+            .csrf(csrf -> csrf.disable()) 
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/v1/api/user/signup","/v1/api/auth/**").
             permitAll()

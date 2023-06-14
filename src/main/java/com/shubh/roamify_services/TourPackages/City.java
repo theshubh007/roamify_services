@@ -31,7 +31,7 @@ public class City {
     private String cityName;
 
      @Lob
-    @Column(name = "place_images")
+    @Column(name = "place_images",length = 1048576)
      private byte[] place_images;
     
       @Column(name = "video_link")

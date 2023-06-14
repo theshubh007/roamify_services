@@ -1,6 +1,7 @@
 package com.shubh.roamify_services.JwtFiles;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -23,27 +24,19 @@ public class RefreshTokenService {
 
   public RefreshToken createRefreshToken(String useremail) {
       
-    
-
-    // RefreshToken refreshToken = RefreshToken.builder()
-    //         .token(UUID.randomUUID().toString())
-    //         .user(userCrudRepo.findByEmail(useremail))
-    //         .expiryDate(Instant.now().plusMillis(600000))//10
-    //     .build();
      User user = userCrudRepo.findByEmail(useremail);
     Optional<RefreshToken> existingToken = refreshTokenRepository.findByUser(user);
-
-    RefreshToken refreshToken;
-    if (existingToken.isPresent()) {
-        refreshToken = existingToken.get();
-        refreshToken.setExpiryDate(Instant.now().plusMillis(600000));
-    } else {
-        refreshToken = RefreshToken.builder()
-                .token(UUID.randomUUID().toString())
-                .user(user)
-                .expiryDate(Instant.now().plusMillis(600000))
-                .build();
-    }
+RefreshToken refreshToken;
+if (existingToken.isPresent()) {
+    refreshToken = existingToken.get();
+    refreshToken.setExpiryDate(Instant.now().plus(30, ChronoUnit.DAYS));
+} else {
+    refreshToken = RefreshToken.builder()
+            .token(UUID.randomUUID().toString())
+            .user(user)
+            .expiryDate(Instant.now().plus(30, ChronoUnit.DAYS))
+            .build();
+}
 
 
                 

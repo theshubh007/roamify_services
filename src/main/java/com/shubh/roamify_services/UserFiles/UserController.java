@@ -1,6 +1,7 @@
 package com.shubh.roamify_services.UserFiles;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -24,22 +25,27 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @RequestMapping("v1/api/user")
 public class UserController {
+
+
+  //getuserbytoken
+  //update
+  //reset-password
+  //create-tour-packages
+  //get-my-packages
+
+
+
   @Autowired
   private UserService userService;
 
   @Autowired
   private TourService tourService;
 
-  @PostMapping("/signup")
-  public ResponseEntity<Object> signup(@RequestBody User user) {
-    return userService.signup(user);
-
+  @PostMapping("/getuserbytoken")
+  public ResponseEntity<Object> getUserByToken(@RequestBody Map<String,String> requestbody) {
+    return userService.getUserByRefreshToken(requestbody.get("refreshtoken"));
   }
 
-  @PostMapping("/login")
-  public ResponseEntity<Object> login(@RequestBody User user) {
-    return userService.login(user);
-  }
 
   @PutMapping("/update")
   public ResponseEntity<Object> update(@RequestBody User user) {
@@ -52,11 +58,7 @@ public class UserController {
     return userService.resetPassword(email, newPassword);
   }
 
-  //     @PostMapping("/create-tour-packages")
-  //   public ResponseEntity<Object> createTourPackage(@RequestBody Long userId,
-  //     @RequestBody TourPackage packageInfo, @RequestBody List<City> cityInfoList) {
-  //   return tourService.createTourPackage(userId, packageInfo, cityInfoList);
-  // }
+
 
   @PostMapping("/create-tour-packages")
   public ResponseEntity<Object> createTourPackage(@RequestBody CreateTourPackageRequest request) {
@@ -69,8 +71,5 @@ public class UserController {
     return tourService.getAllPackagesByAgent(agentId);
   }
 
-  @GetMapping("/check")
-  public String check() {
-    return "working jwt";
-  }
+  
 }

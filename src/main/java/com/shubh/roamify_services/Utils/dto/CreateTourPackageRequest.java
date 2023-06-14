@@ -12,16 +12,16 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CreateTourPackageRequest {
-  Long Userid;
+  String Userid;
   TourPackage tourPackage;
   List<City> cityList;
  
 
- public Long getUserId() {
+ public String getUserId() {
         return Userid;
     }
 
-    public void setUserId(Long Userid) {
+    public void setUserId(String Userid) {
         this.Userid = Userid;
     }
 

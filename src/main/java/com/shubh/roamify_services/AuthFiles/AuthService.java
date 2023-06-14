@@ -53,8 +53,11 @@ public class AuthService {
       String encryptedPassword = passwordEncoder.encode(user.getPassword());
       user.setPassword(encryptedPassword);
       User user1 = userCrudRepo.save(user);
+      // var jwtToken = jwtService.generateToken(user);
+      // return Common_response.successResponsetocken(user1, jwtToken);
+       RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getEmail());
       var jwtToken = jwtService.generateToken(user);
-      return Common_response.successResponsetocken(user1, jwtToken);
+      return Common_response.jwtsuccessRes(refreshToken.getToken(), jwtToken);
     } catch (Exception e) {
       return Common_response.errorResponse(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }

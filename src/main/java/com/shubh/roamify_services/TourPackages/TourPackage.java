@@ -6,6 +6,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.cglib.core.Local;
+
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -14,6 +16,7 @@ import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.shubh.roamify_services.UserFiles.User;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -21,8 +24,10 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
+import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
@@ -50,38 +55,15 @@ public class TourPackage {
     private int maxPerson;
     private boolean approved;
     private int minPerson;
+    
     private LocalDateTime createdDateTime;
-
+    private LocalDateTime tourstartdate;
+    private LocalDateTime dueDateTime;
+  @Lob
+@Column(name = "tour_profile_image", length = 1048576) // Example: Set the length to 1 MB (1048576 bytes)
+private byte[] tourProfileImage;
 
  
-
-
-    public TourPackage(User agent, String tourName, String location, String description, int days,
-            double chargePerPerson, int maxPerson, boolean approved, int minPerson, LocalDateTime createdDateTime,
-            Set<City> cities) {
-        this.agent = agent;
-        this.tourName = tourName;
-        this.location = location;
-        this.description = description;
-        this.days = days;
-        this.chargePerPerson = chargePerPerson;
-        this.maxPerson = maxPerson;
-        this.approved = approved;
-        this.minPerson = minPerson;
-        this.createdDateTime = LocalDateTime.now();
-        this.cities = cities;
-
-    }
-
-
-
-
-
-
-
-
-
-
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "tourpackage_city",
@@ -95,14 +77,29 @@ public class TourPackage {
     private List<User> userlist = new ArrayList<>();
 
 
+    @OneToMany(mappedBy = "tourPackage", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<Image_holder> imagesList = new ArrayList<>();
 
 
+   public TourPackage(User agent, String tourName, String location, String description, int days,
+            double chargePerPerson, int maxPerson, boolean approved, int minPerson, LocalDateTime createdDateTime,
+            LocalDateTime dueDateTime,
+            LocalDateTime tourstartdate,
+            Set<City> cities) {
+        this.agent = agent;
+        this.tourName = tourName;
+        this.location = location;
+        this.description = description;
+        this.days = days;
+        this.chargePerPerson = chargePerPerson;
+        this.maxPerson = maxPerson;
+        this.approved = approved;
+        this.minPerson = minPerson;
+        this.createdDateTime = createdDateTime;
+        this.dueDateTime = dueDateTime;
+        this.cities = cities;
 
-
-  
-    
-    
-
+    }
 
     public TourPackage( User agent, String tourName, String location, String description, int days,
             double chargePerPerson, int maxPerson, boolean approved, int minPerson) {
@@ -118,13 +115,19 @@ public class TourPackage {
         this.minPerson = minPerson;
     }
 
+  
+    
+    
 
 
 
+ public byte[] getTourProfileImage() {
+        return tourProfileImage;
+    }
 
-
-
-
+    public void setTourProfileImage(byte[] tourProfileImage) {
+        this.tourProfileImage = tourProfileImage;
+    }
 
 
 
@@ -274,68 +277,21 @@ public class TourPackage {
 
 
 
-
-
-
-
-
-
-
-
     public void setDays(int days) {
         this.days = days;
     }
-
-
-
-
-
-
-
-
-
-
 
     public double getChargePerPerson() {
         return chargePerPerson;
     }
 
-
-
-
-
-
-
-
-
-
-
     public void setChargePerPerson(double chargePerPerson) {
         this.chargePerPerson = chargePerPerson;
     }
 
-
-
-
-
-
-
-
-
-
-
     public int getMaxPerson() {
         return maxPerson;
     }
-
-
-
-
-
-
-
-
-
 
 
     public void setMaxPerson(int maxPerson) {
@@ -343,27 +299,9 @@ public class TourPackage {
     }
 
 
-
-
-
-
-
-
-
-
-
     public boolean isApproved() {
         return approved;
     }
-
-
-
-
-
-
-
-
-
 
 
     public void setApproved(boolean approved) {
@@ -371,27 +309,9 @@ public class TourPackage {
     }
 
 
-
-
-
-
-
-
-
-
-
     public int getMinPerson() {
         return minPerson;
     }
-
-
-
-
-
-
-
-
-
 
 
     public void setMinPerson(int minPerson) {
@@ -399,41 +319,14 @@ public class TourPackage {
     }
 
 
-
-
-
-
-
-
-
-
-
     public LocalDateTime getCreatedDateTime() {
         return createdDateTime;
     }
 
 
-
-
-
-
-
-
-
-
-
     public void setCreatedDateTime(LocalDateTime createdDateTime) {
         this.createdDateTime = createdDateTime;
     }
-
-
-
-
-
-
-
-
-
 
 
     public Set<City> getCities() {
@@ -481,6 +374,45 @@ public class TourPackage {
     public void setUserlist(List<User> userlist) {
         this.userlist = userlist;
     }
+
+
+
+
+
+
+
+    public LocalDateTime getDueDateTime() {
+        return dueDateTime;
+    }
+
+
+
+
+
+
+
+    public void setDueDateTime(LocalDateTime dueDateTime) {
+        this.dueDateTime = dueDateTime;
+    }
+
+    public LocalDateTime getTourstartdate() {
+        return tourstartdate;
+    }
+
+    public void setTourstartdate(LocalDateTime tourstartdate) {
+        this.tourstartdate = tourstartdate;
+    }
+
+    public List<Image_holder> getImagesList() {
+        return imagesList;
+    }
+
+    public void setImagesList(List<Image_holder> imagesList) {
+        this.imagesList = imagesList;
+    }
+
+
+
 
 
 

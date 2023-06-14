@@ -1,6 +1,7 @@
 package com.shubh.roamify_services.UserFiles;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.apache.catalina.authenticator.SpnegoAuthenticator.AuthenticateAction;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.shubh.roamify_services.JwtFiles.JwtService;
+import com.shubh.roamify_services.JwtFiles.RefreshTokenRepository;
+import com.shubh.roamify_services.JwtFiles.RefreshTokenService;
+import com.shubh.roamify_services.JwtFiles.entity.RefreshToken;
 import com.shubh.roamify_services.TourPackages.TourCrudRepo;
 import com.shubh.roamify_services.TourPackages.TourPackage;
 import com.shubh.roamify_services.Utils.dto.Common_response;
@@ -36,43 +40,31 @@ public class UserService {
 
   @Autowired
   public UserService(AuthenticationManager authenticationManager) {
-      this.authenticationManager = authenticationManager;
+    this.authenticationManager = authenticationManager;
   }
 
-  //signup
-  public ResponseEntity<Object> signup(User user) {
+  @Autowired
+  private RefreshTokenService refreshTokenService;
+
+    @Autowired
+    private RefreshTokenRepository refreshTokenRepository;
+
+
+
+
+
+  public ResponseEntity<Object> getUserByRefreshToken(String refreshToken)  {
     try {
-      User existinguser = userCrudRepo.findByEmail(user.getEmail());
-      if (existinguser != null) {
-        return Common_response.errorResponse("User with given email already exists", HttpStatus.BAD_REQUEST);
+      Optional<RefreshToken> optionalRefreshToken = refreshTokenRepository.findByToken(refreshToken);
+
+      if (optionalRefreshToken.isPresent()) {
+        RefreshToken validRefreshToken = optionalRefreshToken.get();
+        RefreshToken verifiedToken = refreshTokenService.verifyExpiration(validRefreshToken);
+
+        User user = verifiedToken.getUser();
+        return Common_response.successResponse(user);
       }
-
-      String encryptedPassword = passwordEncoder.encode(user.getPassword());
-      user.setPassword(encryptedPassword);
-      User user1 = userCrudRepo.save(user);
-    return Common_response.successResponse(user1);
-    } catch (Exception e) {
-      return Common_response.errorResponse(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-  }
-
-
-  //login
-  public ResponseEntity<Object> login(User user) {
-    try {
-
-      User existingUser = userCrudRepo.findByEmail(user.getEmail());
-      if (existingUser == null) {
-        return Common_response.errorResponse("User with given email does not exist", HttpStatus.BAD_REQUEST);
-      }
-
-      if (!passwordEncoder.matches(user.getPassword(), existingUser.getPassword())) {
-        return Common_response.errorResponse(
-            "Invalid password" + existingUser.getPassword() + "\n" + passwordEncoder.encode(user.getPassword()),
-            HttpStatus.BAD_REQUEST);
-      }
-
-      return Common_response.successResponse(user);
+      return Common_response.errorResponse("Invalid refresh token", HttpStatus.BAD_REQUEST);
     } catch (Exception e) {
       return Common_response.errorResponse(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }

@@ -32,6 +32,24 @@ public class TourService {
   @Autowired
   private CityCrudRepo cityCrudRepo;
 
+
+  public ResponseEntity<Object> exploretours() {
+    try {
+      List<TourPackage> tourList = tourCrudRepo.findAll();
+      if (tourList.isEmpty()) {
+        return Common_response.errorResponse("No tours found", HttpStatus.BAD_REQUEST);
+      }
+      return Common_response.exploretour_response(tourList.size(), tourList);
+    }
+    catch(Exception e){
+      return Common_response.errorResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
+
+    }
+   
+  }
+
+
+
   public ResponseEntity<Object> bookpackage(String uid, String tid) {
     try {
       Long userId = Long.parseLong(uid);
@@ -46,7 +64,10 @@ public class TourService {
       if (user == null) {
         return Common_response.errorResponse("User with the given id does not exist", HttpStatus.BAD_REQUEST);
       }
-
+     User agent = tourPackage.getAgent();
+        if (agent != null && agent.getUid().equals(userId)) {
+            return Common_response.errorResponse("Agent cannot book their own tour package", HttpStatus.BAD_REQUEST);
+        }
       int maxPerson = tourPackage.getMaxPerson();
       List<User> userList = tourPackage.getUserlist();
 
@@ -85,9 +106,10 @@ public class TourService {
     }
   }
 
-  public ResponseEntity<Object> createTourPackage(Long userId, TourPackage packageInfo, List<City> cityInfoList) {
+  public ResponseEntity<Object> createTourPackage(String userId, TourPackage packageInfo, List<City> cityInfoList) {
     try {
-      User user = userCrudRepo.findById(userId).orElse(null);
+      Long uid = Long.parseLong(userId);
+      User user = userCrudRepo.findById(uid).orElse(null);
       if (user == null) {
         return Common_response.errorResponse("User with the provided ID does not exist", HttpStatus.NOT_FOUND);
       }
@@ -102,7 +124,10 @@ public class TourService {
       tourPackage.setMaxPerson(packageInfo.getMaxPerson());
       tourPackage.setApproved(packageInfo.isApproved());
       tourPackage.setMinPerson(packageInfo.getMinPerson());
-      // tourPackage.setDueDateTime(packageInfo.getDueDateTime());
+      tourPackage.setCreatedDateTime(LocalDateTime.now());
+      tourPackage.setDueDateTime(packageInfo.getDueDateTime());
+      tourPackage.setTourstartdate(packageInfo.getTourstartdate());
+        tourPackage.setTourProfileImage(packageInfo.getTourProfileImage());
 
       // Create cities and add them to the tour package
       Set<City> cities = new HashSet<>();
@@ -148,9 +173,10 @@ public class TourService {
   }
   }
 
-  public ResponseEntity<Object> getAllCitiesByTourPackage(Long tourPackageId) {
+  public ResponseEntity<Object> getAllCitiesByTourPackage(String tourPackageId) {
     try {
-      TourPackage tourPackage = tourCrudRepo.findById(tourPackageId).orElse(null);
+      Long tid = Long.parseLong(tourPackageId);
+      TourPackage tourPackage = tourCrudRepo.findById(tid).orElse(null);
       if (tourPackage == null) {
         // Handle tour package not found
         return Common_response.errorResponse("Tour package with the provided ID does not exist", HttpStatus.NOT_FOUND);
@@ -162,6 +188,23 @@ public class TourService {
       return Common_response.errorResponse(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
+
+  public ResponseEntity<Object> getAllMembers_of_tour(String tourPackageId) {
+    try {
+      Long tid = Long.parseLong(tourPackageId);
+      TourPackage tourPackage = tourCrudRepo.findById(tid).orElse(null);
+      if (tourPackage == null) {
+        // Handle tour package not found
+        return Common_response.errorResponse("Tour package with the provided ID does not exist", HttpStatus.NOT_FOUND);
+      }
+
+      List<User> members = tourPackage.getUserlist();
+      return Common_response.successResponse(members);
+    } catch (Exception e) {
+      return Common_response.errorResponse(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
 
   public ResponseEntity<Object> getAllDetailsByTourPackage(Long tourPackageId) {
     try {
@@ -187,33 +230,27 @@ public class TourService {
   public ResponseEntity<Object> searchTourPackagesByCityNames(List<String> cityNames) {
 
     try {
-      // LocalDateTime currentDateTime = LocalDateTime.now();
-      // List<TourPackage> allTourPackages = tourCrudRepo.findAll();
 
-      // List<TourPackage> filteredPackages = allTourPackages.stream()
-      //     .filter(tourPackage -> tourPackage.getCreatedDateTime().isAfter(currentDateTime))
-      //     .filter(tourPackage -> tourPackage.getCities().stream()
-      //         .anyMatch(city -> cityNames.contains(city.getCityName())))
-      //     .collect(Collectors.toList());
+      LocalDateTime currentDateTime = LocalDateTime.now();
+      List<TourPackage> allTourPackages = tourCrudRepo.findAll();
 
-      // return Common_response.successResponse(filteredPackages);
+      List<TourPackage> filteredPackages = allTourPackages.stream()
+          .filter(tourPackage -> {
+            LocalDateTime dueDateTime = tourPackage.getDueDateTime();
+            return dueDateTime != null && dueDateTime.isAfter(currentDateTime);
+          })
+          .filter(tourPackage -> tourPackage.getCities().stream()
+              .anyMatch(city -> cityNames.contains(city.getCityName())))
+          .collect(Collectors.toList());
 
-        LocalDateTime currentDateTime = LocalDateTime.now();
-        List<TourPackage> allTourPackages = tourCrudRepo.findAll();
-
-        List<TourPackage> filteredPackages = allTourPackages.stream()
-                .filter(tourPackage -> {
-                    LocalDateTime createdDateTime = tourPackage.getCreatedDateTime();
-                    return createdDateTime != null && createdDateTime.isAfter(currentDateTime);
-                })
-                .filter(tourPackage -> tourPackage.getCities().stream()
-                        .anyMatch(city -> cityNames.contains(city.getCityName())))
-            .collect(Collectors.toList());
-                
-        return Common_response.successResponse(filteredPackages);
+      return Common_response.successResponse(filteredPackages);
     } catch (Exception e) {
       return Common_response.errorResponse(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
   
+  
+
+
+
 }

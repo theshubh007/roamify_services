@@ -19,6 +19,27 @@ public class TourController {
   @Autowired
   private TourService tourService;
 
+  @PostMapping("/explore-tours")
+  public ResponseEntity<Object> exploretours() {
+    return tourService.exploretours();
+  }
+
+
+  @PostMapping("/get-cities")
+  public ResponseEntity<Object> getcities(@RequestBody Map<String, String> request) {
+    String tid = request.get("tid");
+    return tourService.getAllCitiesByTourPackage(tid);
+  }
+
+  
+  @PostMapping("/get-tour-members")
+    public ResponseEntity<Object> getmembers(@RequestBody Map<String, String> request) {
+      String tid = request.get("tid");
+      return tourService.getAllMembers_of_tour(tid);
+  }
+  
+
+
   @PostMapping("/book-package")
   public ResponseEntity<Object> bookpackage(@RequestBody Map<String, String> request) {
     String uid = request.get("uid");
@@ -27,7 +48,7 @@ public class TourController {
   }
   
 
-  @PostMapping("/search-tour")
+  @PostMapping("/search-tour-bycity")
 public ResponseEntity<Object> searchPackage(@RequestBody Map<String, List<String>> request) {
     List<String> cityNames = request.get("cityNames");
     return tourService.searchTourPackagesByCityNames(cityNames);
