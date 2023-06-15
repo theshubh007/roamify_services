@@ -31,6 +31,12 @@ public class TourController {
     return tourService.getAllCitiesByTourPackage(tid);
   }
 
+    @PostMapping("/get-images")
+  public ResponseEntity<Object> getimages(@RequestBody Map<String, String> request) {
+    String tid = request.get("tid");
+    return tourService.getTourImagesByTourPackage(tid);
+  }
+
   
   @PostMapping("/get-tour-members")
     public ResponseEntity<Object> getmembers(@RequestBody Map<String, String> request) {

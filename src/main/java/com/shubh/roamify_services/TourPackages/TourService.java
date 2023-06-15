@@ -1,11 +1,18 @@
 package com.shubh.roamify_services.TourPackages;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import javax.imageio.ImageIO;
 
 import org.apache.catalina.webresources.Cache;
 import org.hibernate.Hibernate;
@@ -31,6 +38,34 @@ public class TourService {
 
   @Autowired
   private CityCrudRepo cityCrudRepo;
+public byte[] compressImage(byte[] imageBytes) throws IOException {
+    // Read the image from the byte array
+    ByteArrayInputStream inputStream = new ByteArrayInputStream(imageBytes);
+    BufferedImage image = ImageIO.read(inputStream);
+
+    // Create an output stream to store the compressed image
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+    // Compress the image as JPEG with a specified quality (0.0 to 1.0)
+    float imageQuality = 0.5f; // Adjust this value as needed
+    ImageIO.write(image, "jpeg", outputStream);
+
+    // Get the compressed image bytes
+    byte[] compressedBytes = outputStream.toByteArray();
+
+    // Close the streams
+    inputStream.close();
+    outputStream.close();
+
+    return compressedBytes;
+}
+
+
+
+
+
+
+
 
 
   public ResponseEntity<Object> exploretours() {
@@ -39,6 +74,10 @@ public class TourService {
       if (tourList.isEmpty()) {
         return Common_response.errorResponse("No tours found", HttpStatus.BAD_REQUEST);
       }
+      //  for (TourPackage tour : tourList) {
+      //       byte[] compressedImage = compressImage(tour.getTourProfileImage());
+      //       tour.setTourProfileImage(compressedImage);
+      //   }
       return Common_response.exploretour_response(tourList.size(), tourList);
     }
     catch(Exception e){
@@ -46,7 +85,7 @@ public class TourService {
 
     }
    
-  }
+  } 
 
 
 
@@ -131,15 +170,20 @@ public class TourService {
 
       // Create cities and add them to the tour package
       Set<City> cities = new HashSet<>();
+      List<Image_holder> imagesList = new ArrayList<>();
       for (City cityInfo : cityInfoList) {
         City city = new City();
+        Image_holder image = new Image_holder();
         city.setCityName(cityInfo.getCityName());
-        city.setPlace_images(cityInfo.getPlace_images());
+        image.setPlace_images(cityInfo.getPlace_images());
+         image.setTourPackage(tourPackage);
         city.setVideoLink(cityInfo.getVideoLink());
         city.getTourPackages().add(tourPackage);
         cities.add(city);
+        imagesList.add(image);
       }
       tourPackage.setCities(cities);
+      tourPackage.setImagesList(imagesList);
 
       // Save the tour package and cities
       user.getCreatedtourPackages().add(tourPackage);
@@ -184,6 +228,30 @@ public class TourService {
 
       Set<City> cities = tourPackage.getCities();
       return Common_response.successResponse(cities);
+    } catch (Exception e) {
+      return Common_response.errorResponse(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+    public ResponseEntity<Object> getTourImagesByTourPackage(String tourPackageId) {
+    try {
+      Long tid = Long.parseLong(tourPackageId);
+      TourPackage tourPackage = tourCrudRepo.findById(tid).orElse(null);
+      if (tourPackage == null) {
+        // Handle tour package not found
+        return Common_response.errorResponse("Tour package with the provided ID does not exist", HttpStatus.NOT_FOUND);
+      }
+
+      List<Image_holder> imagesList = tourPackage.getImagesList();
+    List<String> images = new ArrayList<>();
+
+for (Image_holder imageHolder : imagesList) {
+    byte[] placeImages = imageHolder.getPlace_images();
+    String encodedImage = Base64.getEncoder().encodeToString(placeImages);
+    images.add(encodedImage);
+}
+      
+      return Common_response.all_images_response(images.size(), images);
     } catch (Exception e) {
       return Common_response.errorResponse(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }

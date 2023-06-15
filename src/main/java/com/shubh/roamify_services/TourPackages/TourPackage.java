@@ -65,7 +65,7 @@ private byte[] tourProfileImage;
 
  
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinTable(name = "tourpackage_city",
             joinColumns = @JoinColumn(name = "tourpackage_id"),
             inverseJoinColumns = @JoinColumn(name = "city_id"))

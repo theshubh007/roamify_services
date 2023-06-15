@@ -59,7 +59,7 @@ public class City {
     }
 
     public void setCityName(String cityName) {
-        this.cityName = cityName;
+        this.cityName = cityName.toLowerCase();
     }
 
     public byte[] getPlace_images() {

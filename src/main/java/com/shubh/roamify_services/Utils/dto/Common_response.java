@@ -21,11 +21,18 @@ public class Common_response {
     }
     
 
-      public static ResponseEntity<Object> exploretour_response(int i, List<TourPackage> tourList) {
+    public static ResponseEntity<Object> exploretour_response(int i, List<TourPackage> tourList) {
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);
         response.put("totalResponse", i);
         response.put("tourList", tourList);
+        return ResponseEntity.ok(response);
+    }
+      public static ResponseEntity<Object> all_images_response(int i, List<String> imageList) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("totalResponse", i);
+        response.put("imageList", imageList);
          return ResponseEntity.ok(response);
     }
 
