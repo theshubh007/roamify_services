@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.shubh.roamify_services.JwtFiles.entity.RefreshToken;
 import com.shubh.roamify_services.TourPackages.TourPackage;
 import java.util.Collections;
 import jakarta.persistence.CascadeType;
@@ -24,6 +25,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 
 @Entity
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "uid")
@@ -45,7 +47,7 @@ public class User implements UserDetails{
     @OneToMany(mappedBy = "agent",cascade = CascadeType.ALL,fetch = FetchType.EAGER)
     private List<TourPackage> createdtourPackages = new ArrayList<>();
 
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinTable(
         name = "travellerpool",
         joinColumns = @JoinColumn(name = "member_id"),
@@ -55,6 +57,9 @@ public class User implements UserDetails{
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<UserReview> reviews;
+
+     @OneToOne(mappedBy = "user", cascade = CascadeType.REMOVE) // Set cascade type to REMOVE
+    private RefreshToken refreshToken;
 
     public User() {
     }

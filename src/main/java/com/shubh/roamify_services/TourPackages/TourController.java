@@ -31,6 +31,12 @@ public class TourController {
     return tourService.getAllCitiesByTourPackage(tid);
   }
 
+  @PostMapping("/get-agent")
+  public ResponseEntity<Object> getAgent(@RequestBody Map<String, String> request) {
+    String tid = request.get("tid");
+    return tourService.getAgentDetails(tid);
+  }
+
     @PostMapping("/get-images")
   public ResponseEntity<Object> getimages(@RequestBody Map<String, String> request) {
     String tid = request.get("tid");
@@ -55,9 +61,32 @@ public class TourController {
   
 
   @PostMapping("/search-tour-bycity")
-public ResponseEntity<Object> searchPackage(@RequestBody Map<String, List<String>> request) {
-    List<String> cityNames = request.get("cityNames");
-    return tourService.searchTourPackagesByCityNames(cityNames);
-}
+  public ResponseEntity<Object> searchPackage(@RequestBody Map<String, String> request) {
+  String search = request.get("searchinput");
+    return tourService.searchTourPackagesByCityNames(search);
+  }
   
+
+   @PostMapping("/get-boooked-tours")
+   public ResponseEntity<Object> getbookedtours(@RequestBody Map<String, String> request) {
+     String uid = request.get("uid");
+     return tourService.getMybookedTours(uid);
+   }
+  
+   @PostMapping("/get-created-tours")
+   public ResponseEntity<Object> getcreatedtours(@RequestBody Map<String, String> request) {
+     String uid = request.get("uid");
+     return tourService.getMycreatedTours(uid);
+   }
+  
+    
+   @PostMapping("/delete-tours")
+   public ResponseEntity<Object> delete(@RequestBody Map<String, String> request) {
+     String uid = request.get("uid");
+     String tid = request.get("tid");
+     return tourService.deleteTourPackage(uid, tid);
+   }
+  
+
+
 }

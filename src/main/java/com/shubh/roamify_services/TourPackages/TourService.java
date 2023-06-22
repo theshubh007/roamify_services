@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -38,6 +39,11 @@ public class TourService {
 
   @Autowired
   private CityCrudRepo cityCrudRepo;
+
+  
+  @Autowired
+  private Image_CrudRepo image_CrudRepo;
+
 public byte[] compressImage(byte[] imageBytes) throws IOException {
     // Read the image from the byte array
     ByteArrayInputStream inputStream = new ByteArrayInputStream(imageBytes);
@@ -66,7 +72,20 @@ public byte[] compressImage(byte[] imageBytes) throws IOException {
 
 
 
+ public ResponseEntity<Object> getAgentDetails(String tid) {
+    try {
+     TourPackage tourPackage = tourCrudRepo.findById(Long.parseLong(tid)).orElse(null);
+      if (tourPackage == null) {
+        return Common_response.errorResponse("Tour with the given id does not exist", HttpStatus.BAD_REQUEST);
+      }
+      User agent = tourPackage.getAgent();
+      return Common_response.successResponse(agent);
+    }
+    catch (Exception e) {
+      return Common_response.errorResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
+    }
 
+    }
 
   public ResponseEntity<Object> exploretours() {
     try {
@@ -114,21 +133,21 @@ public byte[] compressImage(byte[] imageBytes) throws IOException {
         return Common_response.errorResponse("Tour package is already full", HttpStatus.BAD_REQUEST);
       }
 
-      int bookedSeats = 0;
-      for (User bookedUser : userList) {
-        if (bookedUser.getUid().equals(userId)) {
-          bookedSeats++;
-        }
-      }
-      if (bookedSeats >= 2) {
-        return Common_response.errorResponse("User has already booked 2 seats in this tour package",
-            HttpStatus.BAD_REQUEST);
-      }
+      // int bookedSeats = 0;
+      // for (User bookedUser : userList) {
+      //   if (bookedUser.getUid().equals(userId)) {
+      //     bookedSeats++;
+      //   }
+      // }
+      // if (bookedSeats >= 2) {
+      //   return Common_response.errorResponse("User has already booked 2 seats in this tour package",
+      //       HttpStatus.BAD_REQUEST);
+      // }
 
-      if (bookedSeats + 1 > 2) {
-        return Common_response.errorResponse("User can only book a maximum of 2 seats in this tour package",
-            HttpStatus.BAD_REQUEST);
-      }
+      // if (bookedSeats + 1 > 2) {
+      //   return Common_response.errorResponse("User can only book a maximum of 2 seats in this tour package",
+      //       HttpStatus.BAD_REQUEST);
+      // }
 
       userList.add(user);
       tourPackage.setUserlist(userList);
@@ -166,7 +185,7 @@ public byte[] compressImage(byte[] imageBytes) throws IOException {
       tourPackage.setCreatedDateTime(LocalDateTime.now());
       tourPackage.setDueDateTime(packageInfo.getDueDateTime());
       tourPackage.setTourstartdate(packageInfo.getTourstartdate());
-        tourPackage.setTourProfileImage(packageInfo.getTourProfileImage());
+      tourPackage.setTourProfileImage(packageInfo.getTourProfileImage());
 
       // Create cities and add them to the tour package
       Set<City> cities = new HashSet<>();
@@ -174,9 +193,22 @@ public byte[] compressImage(byte[] imageBytes) throws IOException {
       for (City cityInfo : cityInfoList) {
         City city = new City();
         Image_holder image = new Image_holder();
-        city.setCityName(cityInfo.getCityName());
+        //  City city;
+            String cityName = cityInfo.getCityName().toLowerCase();
+            if (cityCrudRepo.existsByCityName(cityName)) {
+                city = cityCrudRepo.findByCityName(cityInfo.getCityName()).orElse(null);
+                // Update the existing city with the new data
+                city.setVideoLink(cityInfo.getVideoLink());
+                city.getTourPackages().add(tourPackage);
+            } else {
+                city = new City();
+                city.setCityName(cityName);
+                city.setVideoLink(cityInfo.getVideoLink());
+                city.getTourPackages().add(tourPackage);
+            }
+        // city.setCityName(cityInfo.getCityName());
         image.setPlace_images(cityInfo.getPlace_images());
-         image.setTourPackage(tourPackage);
+        image.setTourPackage(tourPackage);
         city.setVideoLink(cityInfo.getVideoLink());
         city.getTourPackages().add(tourPackage);
         cities.add(city);
@@ -195,6 +227,60 @@ public byte[] compressImage(byte[] imageBytes) throws IOException {
       return Common_response.errorResponse(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
+  
+  
+
+  public ResponseEntity<Object> deleteTourPackage(String uid, String tid) {
+    try {
+        Long tourPackageId = Long.parseLong(tid);
+        Long userId = Long.parseLong(uid);
+        
+        User user = userCrudRepo.findById(userId).orElse(null);
+        if (user == null) {
+            return Common_response.errorResponse("User with the provided ID does not exist", HttpStatus.NOT_FOUND);
+        }
+
+        TourPackage tourPackage = tourCrudRepo.findById(tourPackageId).orElse(null);
+        if (tourPackage == null) {
+            return Common_response.errorResponse("Tour package with the provided ID does not exist", HttpStatus.NOT_FOUND);
+        }
+
+       
+// Remove associations between tour package and cities
+for (City city : tourPackage.getCities()) {
+    // Set<TourPackage> cityTourPackages = city.getTourPackages();
+    // cityTourPackages.remove(tourPackage);
+    // city.setTourPackages(cityTourPackages);
+    // cityCrudRepo.save(city);
+      city.getTourPackages().removeIf(tp -> tp.gettId().equals(tourPackageId));
+            cityCrudRepo.save(city);
+}
+
+// Clear the userlist association
+for (User member : tourPackage.getUserlist()) {
+    member.getMytourlist().removeIf(tp -> tp.gettId().equals(tourPackageId));
+    userCrudRepo.save(member);
+}
+
+// Clear the agent association
+tourPackage.setAgent(null);
+tourCrudRepo.save(tourPackage);
+
+// Remove the tour package from the user's created tour packages
+// user.getCreatedtourPackages().remove(tourPackage);
+// userCrudRepo.save(user);
+
+// Delete the tour package
+tourCrudRepo.deleteById(tourPackageId);
+
+return Common_response.successResponse("Tour package deleted successfully");
+    } catch (Exception e) {
+        return Common_response.errorResponse(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+}
+
+
+
 
 
   public ResponseEntity<Object> getAllPackagesByAgent(Long userId) {
@@ -295,23 +381,35 @@ for (Image_holder imageHolder : imagesList) {
 
 
 
-  public ResponseEntity<Object> searchTourPackagesByCityNames(List<String> cityNames) {
+  public ResponseEntity<Object> searchTourPackagesByCityNames(String searchInput) {
 
     try {
 
-      LocalDateTime currentDateTime = LocalDateTime.now();
-      List<TourPackage> allTourPackages = tourCrudRepo.findAll();
+      
 
-      List<TourPackage> filteredPackages = allTourPackages.stream()
-          .filter(tourPackage -> {
-            LocalDateTime dueDateTime = tourPackage.getDueDateTime();
-            return dueDateTime != null && dueDateTime.isAfter(currentDateTime);
-          })
-          .filter(tourPackage -> tourPackage.getCities().stream()
-              .anyMatch(city -> cityNames.contains(city.getCityName())))
-          .collect(Collectors.toList());
+    // // Search by city name
+    // List<TourPackage> packagesByCityName = tourCrudRepo.findByCitiesCityNameStartsWithIgnoreCaseAndDueDateTimeAfter(searchInput, currentDateTime);
+    // tourPackages.addAll(packagesByCityName);
 
-      return Common_response.successResponse(filteredPackages);
+    // // Search by tour package location
+       LocalDateTime currentDateTime = LocalDateTime.now();
+            List<TourPackage> tourPackages = new ArrayList<>();    
+    List<TourPackage> packagesByLocation = tourCrudRepo.findByLocationContainingIgnoreCaseAndDueDateTimeAfter(searchInput, currentDateTime);
+    tourPackages.addAll(packagesByLocation);
+
+       List<City> cities = cityCrudRepo.findByCityNameStartsWithIgnoreCase(searchInput);
+       
+        
+        for (City city : cities) {
+            Set<TourPackage> cityTourPackages = city.getTourPackages();
+            for (TourPackage tourPackage : cityTourPackages) {
+              if (tourPackage.getDueDateTime().isAfter(currentDateTime)) {
+                    tourPackages.add(tourPackage);
+                }
+            }
+        }
+
+      return Common_response.successResponse(tourPackages);
     } catch (Exception e) {
       return Common_response.errorResponse(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
@@ -319,6 +417,41 @@ for (Image_holder imageHolder : imagesList) {
   
   
 
+  public ResponseEntity<Object> getMybookedTours(String userId) {
+    try {
+      Long uid = Long.parseLong(userId);
+      User user = userCrudRepo.findById(uid).orElse(null);
+      if (user == null) {
+        // Handle tour package not found
+        return Common_response.errorResponse("User with the provided ID does not exist", HttpStatus.NOT_FOUND);
+      }
 
+      List<TourPackage> tourPackages = user.getMytourlist();
+      return Common_response.successResponse(tourPackages);
+    } catch (Exception e) {
+      return Common_response.errorResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
+
+    }
+
+  }
+  
+  public ResponseEntity<Object> getMycreatedTours(String userId) {
+    try {
+      Long uid = Long.parseLong(userId);
+      User user = userCrudRepo.findById(uid).orElse(null);
+      if (user == null) {
+        // Handle tour package not found
+        return Common_response.errorResponse("User with the provided ID does not exist", HttpStatus.NOT_FOUND);
+      }
+
+      List<TourPackage> tourPackages = user.getCreatedtourPackages();
+      return Common_response.successResponse(tourPackages);
+    }
+    catch(Exception e){
+      return Common_response.errorResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
+
+    }
+   
+  } 
 
 }

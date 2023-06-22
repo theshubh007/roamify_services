@@ -4,6 +4,7 @@ import java.time.Instant;
 
 import com.shubh.roamify_services.UserFiles.User;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -30,7 +31,7 @@ public class RefreshToken {
 
     private Instant expiryDate;
 
-    @OneToOne
+@OneToOne(cascade = CascadeType.REMOVE) 
     @JoinColumn(name = "user_id", referencedColumnName = "uid")
     private User user;
   

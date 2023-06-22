@@ -33,7 +33,7 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @NoArgsConstructor
-@JsonIgnoreProperties("cities")
+@JsonIgnoreProperties({"cities", "userlist"})
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "tId")
 public class TourPackage {
     @Id
@@ -41,7 +41,7 @@ public class TourPackage {
     private Long tId;
 
    
-    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JsonIgnore
     @JsonBackReference
     @JoinColumn(name = "agent_id")
@@ -65,14 +65,14 @@ private byte[] tourProfileImage;
 
  
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.LAZY,cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE})
     @JoinTable(name = "tourpackage_city",
             joinColumns = @JoinColumn(name = "tourpackage_id"),
             inverseJoinColumns = @JoinColumn(name = "city_id"))
     private Set<City> cities = new HashSet<>();
     
 
-   
+    @JsonIgnore
     @ManyToMany(mappedBy = "mytourlist",fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<User> userlist = new ArrayList<>();
 
