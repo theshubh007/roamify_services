@@ -93,10 +93,7 @@ public byte[] compressImage(byte[] imageBytes) throws IOException {
       if (tourList.isEmpty()) {
         return Common_response.errorResponse("No tours found", HttpStatus.BAD_REQUEST);
       }
-      //  for (TourPackage tour : tourList) {
-      //       byte[] compressedImage = compressImage(tour.getTourProfileImage());
-      //       tour.setTourProfileImage(compressedImage);
-      //   }
+     
       return Common_response.exploretour_response(tourList.size(), tourList);
     }
     catch(Exception e){
