@@ -8,6 +8,9 @@ You can download and explore the Roamify app from the Play Store. Here is the li
 
 [Roamify on Play Store](https://play.google.com/store/apps/details?id=com.shubh.Roamify)
 
+![image](https://github.com/theshubh007/roamify_services/assets/100220928/18aff07f-e8de-4982-aae1-be672be2d1e4)
+
+
 ## 🛠️ Tech Stacks
 
 Here are the main technologies used in this project:
