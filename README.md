@@ -6,7 +6,7 @@ This repository contains the backend services for the **Roamify** app, a smart t
 ## 📱 App on Play Store
 You can download and explore the Roamify app from the Play Store. Here is the link:
 
-[Roamify on Play Store](URL)
+[Roamify on Play Store](https://play.google.com/store/apps/details?id=com.shubh.Roamify)
 
 ## 🛠️ Tech Stacks
 
