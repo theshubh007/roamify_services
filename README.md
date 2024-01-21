@@ -22,6 +22,16 @@ Here are the main technologies used in this project:
 - **Docker**: Containerization tool.
 - **AWS**: Cloud services for deployment and storage.
 
+## Installing☔
+
+Its pretty straightforward :
+
+**Clone the repo :** 
+```
+git clone <repository Url>
+```
+
+
 ## 🌱 Why Spring Boot
 "I built the backend using Spring Boot because it provides a robust, opinionated framework perfect for microservice architectures. Its dependency injection, autoconfiguration, and starter dependencies allowed me to quickly scaffold the application code and configure components like security, data access, and web APIs.
 
